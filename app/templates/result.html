@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Готово{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Готовые документы</h1>
+
+  {% if files %}
+    <ul class="files">
+      {% for f in files %}
+        <li>
+          <span class="fname">{{ f.name }}</span>
+          <a class="dl" href="{{ url_for('main.download', job_id=job['id'], filename=f.name) }}">Скачать</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Не удалось создать ни одного файла.</p>
+  {% endif %}
+
+  {% if messages %}
+    <div class="notes">
+      <h3>Примечания</h3>
+      <ul>
+        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="actions">
+    <a class="btn" href="{{ url_for('main.options', job_id=job['id']) }}">← Изменить выбор</a>
+    <a class="btn" href="{{ url_for('main.index') }}">Новый исходник</a>
+  </div>
+</div>
+{% endblock %}

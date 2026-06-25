@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Выбор документов{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Что нужно на выходе?</h1>
+  <p class="muted">Исходник: <strong>{{ job['source_name'] }}</strong>
+    · <a href="{{ url_for('main.index') }}">загрузить другой</a></p>
+
+  <form method="post" action="{{ url_for('main.generate', job_id=job['id']) }}">
+
+    <fieldset>
+      <legend>Документы</legend>
+      {% for key, label in output_types.items() %}
+        <label class="check">
+          <input type="checkbox" name="outputs" value="{{ key }}"
+                 {% if key == 'transit_document' %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+
+    <div class="grid2">
+      <fieldset>
+        <legend>Отправитель</legend>
+        <select id="sender-select" onchange="fillFrom('sender', this.value)">
+          <option value="">— выбрать из реестра —</option>
+          {% for s in parties['senders'] %}
+            <option value="{{ s.key }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+        <textarea name="sender" id="sender" rows="6"
+                  placeholder="Название и адрес отправителя (по строкам)"></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Получатель</legend>
+        <select id="receiver-select" onchange="fillFrom('receiver', this.value)">
+          <option value="">— выбрать из реестра —</option>
+          {% for r in parties['receivers'] %}
+            <option value="{{ r.key }}">{{ r.name }}</option>
+          {% endfor %}
+        </select>
+        <textarea name="receiver" id="receiver" rows="6"
+                  placeholder="Название и адрес получателя (по строкам)"></textarea>
+      </fieldset>
+    </div>
+
+    <button type="submit">Сгенерировать документы →</button>
+  </form>
+</div>
+
+<script id="parties-data" type="application/json">{{ parties | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const PARTIES = JSON.parse(document.getElementById('parties-data').textContent);
+  function fillFrom(which, key) {
+    if (!key) return;
+    const list = which === 'sender' ? PARTIES.senders : PARTIES.receivers;
+    const item = list.find(x => x.key === key);
+    if (item) document.getElementById(which).value = item.block;
+  }
+</script>
+{% endblock %}

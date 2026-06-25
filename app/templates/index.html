@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Загрузка исходника{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Создать транзитные документы</h1>
+  <p class="muted">Загрузите Excel-«Исходник», затем выберите, какие документы нужны на выходе.</p>
+
+  <form method="post" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
+    <label class="dropzone">
+      <input type="file" name="source" accept=".xlsx,.xls,.xlsb" required
+             onchange="document.getElementById('fname').textContent = this.files[0] ? this.files[0].name : '';">
+      <span class="dz-text">Нажмите, чтобы выбрать файл</span>
+      <span class="dz-hint">.xlsx · .xls · .xlsb (до 50 МБ)</span>
+      <span id="fname" class="dz-file"></span>
+    </label>
+    <button type="submit">Загрузить и продолжить →</button>
+  </form>
+</div>
+{% endblock %}

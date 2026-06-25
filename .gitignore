@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Flask instance (БД, загрузки, результаты) — не коммитим
+instance/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Временные файлы конвертации LibreOffice
+/tmp/si_convert/

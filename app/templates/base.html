@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Транзитные документы{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('main.index') }}">📦 Транзитные документы</a>
+    <nav>
+      {% if g.user %}
+        <span class="user">{{ g.user['username'] }}</span>
+        <a href="{{ url_for('auth.logout') }}">Выйти</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Вход</a>
+        <a href="{{ url_for('auth.register') }}">Регистрация</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">Спринт 0 — фундамент · работает локально</footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
