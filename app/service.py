@@ -29,6 +29,16 @@ import openpyxl  # noqa: E402
 import generate_si_documents as si  # noqa: E402
 import hssc_txt_v3 as hssc_engine  # noqa: E402
 import parties as parties_db  # noqa: E402
+import fill_inv_pl  # noqa: E402
+
+# Папка с готовыми шаблонами (INV/PL по типам шапки)
+_APP_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = _APP_DIR / "templates_xlsx"
+# Базовый шаблон один (OptiAuto); тип шапки меняет логотип в коде филлера.
+_INV_BASE = TEMPLATES_DIR / "OptiAuto" / "INV_OptiAuto.xlsx"
+_PL_BASE = TEMPLATES_DIR / "OptiAuto" / "PL_OptiAuto.xlsx"
+INV_TEMPLATES = {"optiauto": _INV_BASE, "wens": _INV_BASE, "none": _INV_BASE}
+PL_TEMPLATES = {"optiauto": _PL_BASE, "wens": _PL_BASE, "none": _PL_BASE}
 
 
 def parties_for_ui() -> dict:
@@ -47,13 +57,15 @@ def parties_for_ui() -> dict:
     }
 
 
-# Доступные типы вывода (ключ → подпись для UI)
+# Доступные типы вывода (ключ → подпись для UI). Сверху — три основных документа.
 OUTPUT_TYPES = {
-    "separate_sheets":  "Отдельные листы из шаблона",
-    "whole_template":   "Весь шаблон (целиком)",
-    "transit_document": "Транзитный документ (INVOICE_TRANSIT)",
+    "inv_ru":           "INV (RU) — инвойс с русскими наименованиями",
+    "pl":               "PL — упаковочный лист",
+    "transit_document": "Invoice Transit (INVOICE_TRANSIT)",
     "txt_hssc":         "txt HSSC codes (таможня Дубая)",
     "cmr_document":     "CMR document (таблица для накладной)",
+    "whole_template":   "Весь шаблон (целиком)",
+    "separate_sheets":  "Отдельные листы из шаблона",
 }
 
 
@@ -85,12 +97,19 @@ class Result:
 # Подготовка данных для SI-движка (общая для transit + cmr)
 # --------------------------------------------------------------------------- #
 
-def _prepare_si(src_xlsx: Path, sender_lines: list[str], receiver_lines: list[str]):
+def _prepare_si(src_xlsx: Path, sender_lines: list[str], receiver_lines: list[str],
+                invoice_no: str | None = None, date: str | None = None):
     """Читает источник, классифицирует, агрегирует, распределяет места.
-    Возвращает (agg, details, profile, total_places). Параметры
-    отправителя/получателя подставляются в профиль/детали.
+    Возвращает (agg, details, profile, total_places, inv_no). Параметры
+    отправителя/получателя и ручные номер/дата подставляются в профиль/детали.
     """
     inv_df, pl_df, details, profile = si.read_source(src_xlsx)
+
+    # Ручной ввод перекрывает то, что прочитано из источника
+    if invoice_no:
+        details["invoice_no"] = invoice_no
+    if date:
+        details["date"] = date
 
     # Подстановка отправителя/получателя из формы (пусто → ничего не показываем)
     si.PROFILES[profile]["sender"] = sender_lines or []
@@ -122,6 +141,9 @@ def generate_documents(
     sender_text: str | None,
     receiver_text: str | None,
     out_dir: str | Path,
+    invoice_no: str | None = None,
+    date: str | None = None,
+    header_type: str = "optiauto",
 ) -> Result:
     src = Path(source_path)
     out_dir = Path(out_dir)
@@ -129,6 +151,7 @@ def generate_documents(
     stem = _safe(src.stem)
     sender_lines = _lines(sender_text)
     receiver_lines = _lines(receiver_text)
+    inv_label = _safe(invoice_no) if invoice_no else stem
     res = Result()
 
     # Нормализуем к .xlsx (для движков на openpyxl). .xls/.xlsb → конвертация
@@ -144,8 +167,57 @@ def generate_documents(
 
     def si_data():
         if "v" not in _si_cache:
-            _si_cache["v"] = _prepare_si(src_xlsx, sender_lines, receiver_lines)
+            _si_cache["v"] = _prepare_si(src_xlsx, sender_lines, receiver_lines,
+                                         invoice_no, date)
         return _si_cache["v"]
+
+    # ---- 0. INV (RU) — заполнение шаблона ----
+    if "inv_ru" in selections:
+        try:
+            template = INV_TEMPLATES.get(header_type) or INV_TEMPLATES["optiauto"]
+            if not Path(template).exists():
+                raise RuntimeError(f"нет шаблона для шапки «{header_type}»")
+            p = out_dir / f"INV_RU_{inv_label}.xlsx"
+            rep = fill_inv_pl.fill_inv_ru(
+                template_path=str(template),
+                source_path=str(src_xlsx),
+                output_path=str(p),
+                invoice_no=invoice_no,
+                date=date,
+                receiver_lines=receiver_lines,
+                sender_lines=sender_lines,
+                header_type=header_type,
+            )
+            res.add(p)
+            for note in rep.get("notes", []):
+                res.warn(f"INV(RU): {note}")
+        except Exception as e:
+            res.warn(f"INV(RU): не удалось — {e}")
+            traceback.print_exc()
+
+    # ---- 0b. PL — упаковочный лист ----
+    if "pl" in selections:
+        try:
+            template = PL_TEMPLATES.get(header_type) or PL_TEMPLATES["optiauto"]
+            if not Path(template).exists():
+                raise RuntimeError(f"нет PL-шаблона для шапки «{header_type}»")
+            p = out_dir / f"PL_{inv_label}.xlsx"
+            rep = fill_inv_pl.fill_pl(
+                template_path=str(template),
+                source_path=str(src_xlsx),
+                output_path=str(p),
+                invoice_no=invoice_no,
+                date=date,
+                receiver_lines=receiver_lines,
+                sender_lines=sender_lines,
+                header_type=header_type,
+            )
+            res.add(p)
+            for note in rep.get("notes", []):
+                res.warn(f"PL: {note}")
+        except Exception as e:
+            res.warn(f"PL: не удалось — {e}")
+            traceback.print_exc()
 
     # ---- 1. Весь шаблон ----
     if "whole_template" in selections:

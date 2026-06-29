@@ -13,10 +13,37 @@
       {% for key, label in output_types.items() %}
         <label class="check">
           <input type="checkbox" name="outputs" value="{{ key }}"
-                 {% if key == 'transit_document' %}checked{% endif %}>
+                 {% if key == 'inv_ru' %}checked{% endif %}>
           <span>{{ label }}</span>
         </label>
       {% endfor %}
+    </fieldset>
+
+    <fieldset>
+      <legend>Реквизиты</legend>
+      <div class="grid2">
+        <label>Номер инвойса
+          <input type="text" name="invoice_no" placeholder="напр. SI0326">
+        </label>
+        <label>Дата
+          <input type="text" name="date" placeholder="напр. 03.06.2026">
+        </label>
+      </div>
+      <p class="muted" style="margin-top:8px">Если оставить пусто — возьмём из файла-исходника (когда есть).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Тип шапки (для INV / PL)</legend>
+      <label class="check">
+        <input type="radio" name="header_type" value="optiauto" checked>
+        <span>OptiAuto — логотип OptiAuto</span>
+      </label>
+      <label class="check">
+        <input type="radio" name="header_type" value="none">
+        <span>Без шапки — только адрес отправителя (без логотипов)</span>
+      </label>
+      <p class="muted" style="margin-top:8px">Wens — отдельный полный шаблон (зелёная шапка,
+        английские названия). Сделаем отдельным шагом позже.</p>
     </fieldset>
 
     <div class="grid2">
