@@ -703,7 +703,8 @@ FMT_INT    = r'_(* #,##0_);_(* \(#,##0\);_(* "-"??_);_(@_)'
 FMT_MONEY  = r'_(* #,##0.00_);_(* \(#,##0.00\);_(* "-"??_);_(@_)'
 FMT_WEIGHT = r'_(* #,##0.000_);_(* \(#,##0.000\);_(* "-"??_);_(@_)'
 FMT_DATE   = r'[$-409]mmmm\ d\,\ yyyy;@'
-ROW_H = 10.35
+FMT_DATE_DMY = 'DD.MM.YYYY'
+ROW_H = 10.2
 
 
 def _set(ws, coord, value, font=F_REG, align=AL_L, fmt=None, border=None):
@@ -732,7 +733,7 @@ def build_invoice_transit(agg, details, profile, out_path: Path, blank=False, di
     inv_no_shown = display_invoice_no or details['invoice_no']
 
     for i, line in enumerate(sender):
-        _set(ws, f'B{3+i}', line, font=F_REG, align=AL_L)
+        _set(ws, f'B{4+i}', line, font=F_REG, align=AL_L)   # эталон: отправитель B4-B8
 
     # Дата
     _set(ws, 'B16', 'Date:', font=F_BOLD, align=AL_L)
@@ -744,7 +745,7 @@ def build_invoice_transit(agg, details, profile, out_path: Path, blank=False, di
         try: parsed = datetime.strptime(str(date_val), fmt); break
         except: pass
     if parsed:
-        _set(ws, 'C16', parsed, font=F_REG, align=AL_L, fmt=FMT_DATE)
+        _set(ws, 'C16', parsed, font=F_REG, align=AL_L, fmt=FMT_DATE_DMY)  # 26.06.2026
     else:
         _set(ws, 'C16', date_val, font=F_REG, align=AL_L)
 
@@ -752,10 +753,9 @@ def build_invoice_transit(agg, details, profile, out_path: Path, blank=False, di
     for i, line in enumerate(consignee[:4]):
         _set(ws, f'B{18+i}', line, font=F_BOLD if i == 0 else F_REG, align=AL_L)
 
-    # ИНВОЙС № (B22 merge B:C, D22 номер)
-    _set(ws, 'B22', 'ИНВОЙС', font=F_BOLD, align=AL_L)
+    # ИНВОЙС № (B22 merge B:C — метка с номером инвойса)
+    _set(ws, 'B22', f'ИНВОЙС {inv_no_shown}', font=F_BOLD, align=AL_L)
     ws.merge_cells('B22:C22')
-    _set(ws, 'D22', inv_no_shown, font=F_BOLD, align=AL_L)
 
     # Заголовки таблицы (B24:H24) — все left/center, как в эталоне
     headers = ['N', 'HC CODE', 'КОЛИЧЕСТВО', 'МЕСТ', 'СУММА', 'БРУТТО', ' ОПИСАНИЕ']

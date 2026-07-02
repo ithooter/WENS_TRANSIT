@@ -32,24 +32,11 @@
       <p class="muted" style="margin-top:8px">Если оставить пусто — возьмём из файла-исходника (когда есть).</p>
     </fieldset>
 
-    <fieldset>
-      <legend>Тип шапки (для INV / PL)</legend>
-      <label class="check">
-        <input type="radio" name="header_type" value="optiauto" checked>
-        <span>OptiAuto — логотип OptiAuto</span>
-      </label>
-      <label class="check">
-        <input type="radio" name="header_type" value="none">
-        <span>Без шапки — только адрес отправителя (без логотипов)</span>
-      </label>
-      <p class="muted" style="margin-top:8px">Wens — отдельный полный шаблон (зелёная шапка,
-        английские названия). Сделаем отдельным шагом позже.</p>
-    </fieldset>
-
     <div class="grid2">
       <fieldset>
         <legend>Отправитель</legend>
-        <select id="sender-select" onchange="fillFrom('sender', this.value)">
+        <select id="sender-select" name="sender_key"
+                onchange="fillFrom('sender', this.value)">
           <option value="">— выбрать из реестра —</option>
           {% for s in parties['senders'] %}
             <option value="{{ s.key }}">{{ s.name }}</option>
@@ -57,11 +44,15 @@
         </select>
         <textarea name="sender" id="sender" rows="6"
                   placeholder="Название и адрес отправителя (по строкам)"></textarea>
+        <p class="muted" style="margin-top:8px">Шаблон выбирается по отправителю:
+          OptiAuto — с логотипом; остальные — базовый (без логотипа, адрес сверху).
+          WENS — отдельный шаблон, будет позже.</p>
       </fieldset>
 
       <fieldset>
         <legend>Получатель</legend>
-        <select id="receiver-select" onchange="fillFrom('receiver', this.value)">
+        <select id="receiver-select" name="receiver_key"
+                onchange="fillFrom('receiver', this.value)">
           <option value="">— выбрать из реестра —</option>
           {% for r in parties['receivers'] %}
             <option value="{{ r.key }}">{{ r.name }}</option>

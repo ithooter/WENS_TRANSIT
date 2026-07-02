@@ -97,7 +97,8 @@ def generate(job_id):
         out_dir=out_dir,
         invoice_no=(request.form.get("invoice_no") or "").strip() or None,
         date=(request.form.get("date") or "").strip() or None,
-        header_type=request.form.get("header_type") or "optiauto",
+        sender_key=(request.form.get("sender_key") or "").strip() or None,
+        receiver_key=(request.form.get("receiver_key") or "").strip() or None,
     )
 
     files = [{"name": p.name} for p in result.created]

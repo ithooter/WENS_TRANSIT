@@ -13,6 +13,7 @@ instance/
 .DS_Store
 .idea/
 .vscode/
+.claude/
 *.swp
 
 # Временные файлы конвертации LibreOffice

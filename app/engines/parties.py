@@ -25,8 +25,13 @@ from __future__ import annotations
 # --------------------------------------------------------------------------- #
 SENDERS: dict[str, dict] = {
     "optiauto": {
-        "name": "OptiAuto FZE",
-        "lines": [],                       # logo block kept; no text override
+        "name": "OPTIAUTO FZE",
+        "lines": [
+            "Warehouse No B-07",
+            "Umm Al Quwain Free Trade Zone,",
+            "Al Barqaa, Umm Al Quwain, UAE",
+            "optiautofze@gmail.com",
+        ],                       # block = name + lines = ровно как в эталоне (5 строк)
         "meta": {"currency": "AED", "keep_logo": True},
     },
     "carbotec": {
@@ -133,9 +138,22 @@ RECEIVERS: dict[str, dict] = {
     },
     "autoseller": {
         "name": "LLC «Autoseller»",
-        "lines": [],   # full block already baked into the OPTIAUTO template
+        "lines": [
+            "LLC «Autoseller»",
+            "Room 17, Building 1A/1,",
+            "Lipkinskoye Highway,",
+            "Nagornoye Village",
+            ],   # full block already baked into the OPTIAUTO template
         "meta": {"currency": "AED"},
     },
+    "LLC AVR":{
+        "name":"LLC «AVR»",
+        "lines":[
+            "Legal address: Kakhovka Street",
+            "Bld 11/1 Moscow. 117303",
+            "Russia INN 7728733327 / KPP 772701001",
+        ]
+    }
 }
 
 # Aliases so a caller can look a party up by a human label too.
